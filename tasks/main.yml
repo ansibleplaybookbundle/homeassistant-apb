@@ -1,0 +1,29 @@
+# vim: set filetype=yaml shiftwidth=2 tabstop=2 expandtab shiftwidth :
+---
+
+- name: "Update last operation"
+  asb_last_operation:
+    description: "0%: Starting"
+  when: in_cluster
+
+- name: 'Set facts'
+  set_fact:
+    cluster: '{{ "openshift" if "openshift" in lookup("k8s", cluster_info="version") else "kubernetes" }}'
+    uniqname: '{{ _apb_service_instance_id.split("-")[0] | lower }}'
+
+- name: "Set home-assistant objects state={{ state }}"
+  k8s:
+    state: "{{ state }}"
+    definition: "{{ lookup('template', item.name) | from_yaml }}"
+  when: item.apply | default(True)
+  loop:
+    - name: service.yaml.j2
+    - name: pvc.yaml.j2
+    - name: route.yaml.j2
+      apply: "{{ True if 'route.openshift.io' in lookup('k8s', cluster_info='api_groups') else False }}"
+    - name: deployment.yaml.j2
+
+- name: "Update last operation"
+  asb_last_operation:
+    description: "100%: Done"
+  when: in_cluster

@@ -1,0 +1,32 @@
+# vim: set filetype=yaml shiftwidth=2 tabstop=2 expandtab smartindent :
+---
+version: 1.0
+name: homeassistant-apb
+description: Open source home automation that puts local control and privacy first
+bindable: False
+async: optional
+metadata:
+  displayName: Home-Assistant (APB)
+  imageUrl: https://raw.githubusercontent.com/home-assistant/home-assistant.io/next/source/images/home-assistant-logo-2164x2164.png
+  dependencies:
+    - 'docker.io/homeassistant/home-assistant'
+plans:
+  - name: Ephemeral
+    description: Deploy home-assistant with ephemeral storage (testing)
+    free: True
+    default: True
+    metadata:
+      displayName: Ephemeral
+    parameters: []
+  - name: Persistent
+    description: Deploy home-assistant with persistent storage (production)
+    free: True
+    metadata:
+      displayName: Persistent
+    parameters:
+      - name: hass_volume_size
+        type: enum
+        default: '1Gi'
+        enum: ['1Gi', '5Gi', '10Gi']
+        title: Home-Assistant Volume Size
+        required: true

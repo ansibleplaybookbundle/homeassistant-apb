@@ -1,0 +1,10 @@
+---
+# Defaults for values we could expect from a broker
+_apb_plan_id: default
+_apb_service_class_id: 0
+_apb_service_instance_id: 0
+
+app_name: "homeassistant-apb-{{ _apb_service_instance_id.split('-')[0] }}"
+app_image: docker.io/homeassistant/home-assistant:0.78.0
+namespace: "{{ lookup('env','NAMESPACE') | default('home-assistant', true) }}"
+

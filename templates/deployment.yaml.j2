@@ -1,0 +1,88 @@
+# vim: set tabstop=2 shiftwidth=2 ft=yaml smartindent expandtab :
+---
+{% if 'apps.openshift.io' in lookup('k8s', cluster_info='api_groups') %}
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+{% else %}
+apiVersion: apps/v1
+kind: Deployment
+{% endif %}
+metadata:
+  creationTimestamp: null
+  name: {{ app_name }}
+  namespace: {{ namespace | string }}
+  labels:
+    app: {{ app_name }}
+    service: {{ app_name }}
+    service_class_id: '{{ _apb_service_class_id }}'
+    plan_id: '{{ _apb_plan_id }}'
+    service_instance_id: '{{ _apb_service_instance_id }}'
+spec:
+  replicas: 1
+{% if 'apps.openshift.io' in lookup('k8s', cluster_info='api_groups') %}
+  selector:
+    app: {{ app_name }}
+    service: {{ app_name }}
+  strategy:
+    type: Rolling
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+  test: false
+  triggers:
+    - type: ConfigChange
+{% else %}
+  selector:
+    matchLabels:
+      app: {{ app_name }}
+      service: {{ app_name }}
+  strategy:
+    type: Recreate
+{% endif %}
+  template:
+    metadata:
+      name: {{ app_name }}
+      labels:
+        app: {{ app_name }}
+        service: {{ app_name }}
+        service_class_id: '{{ _apb_service_class_id }}'
+        plan_id: '{{ _apb_plan_id }}'
+        service_instance_id: '{{ _apb_service_instance_id }}'
+    spec:
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      terminationGracePeriodSecond: 30
+      containers:
+        - name: homeassistant
+          image: {{ app_image }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8123
+              name: web
+              protocol: TCP
+          command:
+            - "python"
+            - "-m"
+            - "homeassistant"
+            - "--config"
+            - "/config"
+          volumeMounts:
+            - mountPath: /config/
+              name: config
+        - name: hass-editor
+          image: thinca/vim:v8.1.0401-full
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /config/
+              name: config
+      volumes:
+        - name: config
+{% if _apb_plan_id == 'Persistent' %}
+          persistentVolumeClaim:
+            claimName: {{ app_name }}
+{% else %}
+          emptyDir: {}
+{% endif %}

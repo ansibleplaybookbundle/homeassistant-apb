@@ -1,0 +1,12 @@
+# vim: set filetype=yaml shiftwidth=2 tabstop=2 expandtab smartindent :
+---
+- name: homeassistant-apb playbook to provision the application
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars:
+    apb_action: provision
+
+  roles:
+    - role: ansibleplaybookbundle.asb-modules
+    - role: homeassistant-apb

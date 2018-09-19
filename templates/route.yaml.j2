@@ -1,0 +1,16 @@
+# vim: ft=yaml shiftwidth=2 tabstop=2 expandtab smartindent :
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ app_name }}
+  namespace: "{{ namespace | string }}"
+  labels:
+    app: {{ app_name }}
+    service: {{ app_name }}
+spec:
+  to:
+    kind: Service
+    name: {{ app_name }}
+  port:
+    targetPort: web
